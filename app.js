@@ -6,7 +6,7 @@ const sqlite3 = require("sqlite3");
 const app = express();
 
 const dbPath = path.join(__dirname, "userData.db");
-
+app.use(express.json());
 let db = null;
 
 const initializeDBAndServer = async () => {
@@ -45,14 +45,14 @@ app.post("/register", async (request, response) => {
         )`;
     if (password.length < 5) {
       response.status(400);
-      response.send("password is too short");
+      response.send("Password is too short");
     } else {
       let newUserDetails = await db.run(createUserQuery);
       response.status(200);
       response.send("User created successfully");
     }
   } else {
-    response.status = 400;
+    response.status(400);
     response.send("User already exists");
   }
 });
@@ -63,14 +63,14 @@ app.post("/login", async (request, response) => {
   const dbUser = await db.get(selectUserQuery);
   if (dbUser === undefined) {
     response.status(400);
-    response.send("Invalid User");
+    response.send("Invalid user");
   } else {
     const isPasswordMatched = await bcrypt.compare(password, dbUser.password);
     if (isPasswordMatched === true) {
-      response.send("Login Success!");
+      response.send("Login success!");
     } else {
       response.status(400);
-      response.send("Invalid Password");
+      response.send("Invalid password");
     }
   }
 });
@@ -88,7 +88,7 @@ app.put("/change-password", async (request, response) => {
       const lengthOfNewPassword = newPassword.length;
       if (lengthOfNewPassword < 5) {
         response.status(400);
-        response.send("password is too short");
+        response.send("Password is too short");
       } else {
         const encryptedPassword = await bcrypt.hash(newPassword, 10);
         const updatePasswordQuery = `
@@ -96,7 +96,7 @@ app.put("/change-password", async (request, response) => {
         set password='${encryptedPassword}'
         where username='${username}'`;
         await db.run(updatePasswordQuery);
-        response.send("password updated");
+        response.send("Password updated");
       }
     } else {
       response.status(400);
